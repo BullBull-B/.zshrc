@@ -146,7 +146,7 @@ path() {
 function nicemount() { (echo "DEVICE PATH TYPE FLAGS" && mount | awk '$2="";1') | column -t ; }
 
 # Define aliases.
-#alias tree='tree -a -I .git'
+alias tree='tree -a -I .git'
 
 # Directory Movement
 alias cd~='cd ~'
@@ -157,13 +157,11 @@ alias ....='cd ../../..'
 alias bk='cd $OLDPWD'
 
 # Directory Information
-alias lh='ls -d .*' # show hidden files/directories only
-alias l='ls -al'
-alias la='ls -a'
-alias ls='ls -GFh' # Colorize output, add file type indicator, and put sizes in human readable format
-alias ll='ls -GFhl' # Same as above, but in long listing format
-alias tree="ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/'"
-alias dus='du -sckx * | sort -nr' #directories sorted by size
+alias l.='ls --color=auto -d .*' # show hidden files/directories only
+alias ls='ls --color=auto'
+alias l='ls -h --color=auto -Al'
+alias la='ls --color=auto -A'
+alias ll='ls -h --color=auto -l' # Same as above, but in long listing format
 
 alias wordy='wc -w * | sort | tail -n10' # sort files in current directory by the number of words they contain
 alias filecount='find . -type f | wc -l' # number of files (not directories)
