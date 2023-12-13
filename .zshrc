@@ -145,6 +145,48 @@ path() {
 # Display mounted drives in nicely formatted manner
 function nicemount() { (echo "DEVICE PATH TYPE FLAGS" && mount | awk '$2="";1') | column -t ; }
 
+# Automatically Compile and Execute programming languages
+function autocompile {
+  local file="$1"
+  local extension="${file##*.}"
+  local output="${file%.*}.out"
+
+  case "$extension" in
+    cpp)  compile_cpp "$file" "$output" ;;
+    c)  compile_c "$file" "$output" ;;
+    js)   compile_js "$file" ;;
+    java)   compile_java "$file" ;;
+    py)    python3 "$file" ;;
+    # Add additional cases for other languages and their commands here
+    *)    echo "Unsupported file type: $extension" ;;
+  esac
+}
+
+function compile_cpp {
+  local file="$1"
+  local output="$2"
+  g++ -o "$output" "$file" && ./"$output"
+}
+
+function compile_c {
+  local file="$1"
+  local output="$2"
+  gcc -o "$output" "$file" && ./"$output"
+}
+
+function compile_java {
+  local file="$1"
+  javac "$file" && java "${file%.*}"
+}
+
+function compile_js {
+  local file="$1"
+  node "$file"
+}
+
+# Add additional functions for other languages here
+alias ace="autocompile"
+
 # Define aliases.
 alias tree='tree -a -I .git'
 
