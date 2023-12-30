@@ -184,8 +184,109 @@ function compile_js {
   node "$file"
 }
 
+anime() {
+  if ! find "$(mount | grep /dev/sda1 | awk '{print $3}')/sdocument" -name anime.txt -print -quit 2>/dev/null | grep -q .; then
+    sudo mount /dev/sda1 /mnt
+  fi
+  nvim "$(mount | grep /dev/sda1 | awk '{print $3}')/sdocument/anime.txt"
+}
+
+fcd() {
+  cd "$(find . /mnt -type d | fzf)"
+}
+
+open() {
+  xdg-open "$(find -type f | fzf)"
+}
+
+# To Mount and UnMount the disks
+function mnt() {
+  local disks
+  disks=$(awk '$4 {print $4}' /proc/partitions | grep -vE 'nvme0n1|name|zram0')
+
+  local selected
+  selected=$(echo "$disks" | fzf)
+
+  if [ -n "$selected" ]; then
+    local mountpoint
+    mountpoint=$(df -P | awk -v dev="/dev/$selected" '$1 == dev {print $6}')
+
+    if [ -n "$mountpoint" ]; then
+      cd "$mountpoint"
+      echo "Changed directory to $mountpoint"
+    else
+      local mountdir
+      case $selected in
+        sda1)
+          mountdir="/mnt/sairaj"
+          ;;
+        sdb1)
+          mountdir="/mnt/sdb1"
+          ;;
+        *)
+          echo "No predefined mount directory for $selected."
+          echo -n "Enter a name for the mount directory [$selected]: "
+          read dirname
+          mountdir="/mnt/${dirname:-$selected}"
+          ;;
+      esac
+
+      if ! mountpoint -q "$mountdir"; then
+        if [ ! -d "$mountdir" ]; then
+          sudo mkdir -p "$mountdir"
+        fi
+        sudo mount "/dev/$selected" "$mountdir"
+        echo "Disk /dev/$selected mounted at $mountdir"
+        cd "$mountdir"
+        echo "Changed directory to $mountdir"
+      else
+        echo "$mountdir is already mounted"
+        cd "$mountdir"
+        echo "Changed directory to $mountdir"
+      fi
+    fi
+  else
+    echo "No disk selected"
+  fi
+}
+
+function umnt() {
+  local disks
+  disks=$(awk '$4 {print $4}' /proc/partitions | grep -vE 'nvme0n1|name|zram0')
+
+  local selected
+  selected=$(echo "$disks" | fzf)
+
+  if [ -n "$selected" ]; then
+    local mountpoint
+    mountpoint=$(df -P | awk -v dev="/dev/$selected" '$1 == dev {print $6}')
+
+    if [ -n "$mountpoint" ]; then
+      local current_directory
+      current_directory=$(pwd)
+
+      if [ "$current_directory" != "$mountpoint" ]; then
+        sudo umount "$mountpoint"
+        echo "Disk /dev/$selected unmounted from $mountpoint"
+      else
+        echo "Cannot unmount. Currently inside the mounted directory $mountpoint."
+      fi
+    else
+      echo "No mounted directory found for /dev/$selected"
+    fi
+  else
+    echo "No disk selected"
+  fi
+}
+
+
 # Add additional functions for other languages here
 alias ace="autocompile"
+
+# Bug Writers aliases
+alias getpath="find . /mnt -type f | fzf | sed 's/^..//' | tr -d '\n' | xclip -selection c"
+alias cin="xclip -selection c"
+alias cout="xclip -selection clipboard -o"
 
 # Define aliases.
 alias tree='tree -a -I .git'
